@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>스네이크 게임</title>
+<style>
+  body {
+    background: #f0f0f0;
+    text-align: center;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  canvas {
+    background: #222;
+    display: block;
+    margin: 20px auto;
+    border: 1px solid #aaa;
+  }
+  h1 {
+    margin-top: 30px;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+<h1>스네이크 게임</h1>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<script>
+(function() {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    
+    const gridSize = 20; // 격자 크기
+    const tileCount = canvas.width / gridSize; 
+    let snakeX = 10; 
+    let snakeY = 10;
+    let vx = 0;
+    let vy = 0;
+    let snakeBody = [];
+    let snakeLength = 5;
+    let appleX = 15;
+    let appleY = 15;
+
+    function gameLoop() {
+        update();
+        draw();
+    }
+
+    function update() {
+        snakeX += vx;
+        snakeY += vy;
+
+        // 벽에 부딪히면 반대편으로 나오게 하는(토러스) 룰 적용 시 아래 주석 제거
+        // if (snakeX < 0) snakeX = tileCount - 1;
+        // if (snakeX > tileCount - 1) snakeX = 0;
+        // if (snakeY < 0) snakeY = tileCount - 1;
+        // if (snakeY > tileCount - 1) snakeY = 0;
+
+        // 벽에 충돌하면 게임오버
+        if (snakeX < 0 || snakeX > tileCount - 1 || snakeY < 0 || snakeY > tileCount - 1) {
+            resetGame();
+        }
+
+        snakeBody.push({x: snakeX, y: snakeY});
+        while (snakeBody.length > snakeLength) {
+            snakeBody.shift();
+        }
+
+        // 사과 먹기 체크
+        if (snakeX === appleX && snakeY === appleY) {
+            snakeLength++;
+            appleX = Math.floor(Math.random() * tileCount);
+            appleY = Math.floor(Math.random() * tileCount);
+        }
+
+        // 자기 몸과 충돌 체크
+        for (let i = 0; i < snakeBody.length - 1; i++) {
+            if (snakeBody[i].x === snakeX && snakeBody[i].y === snakeY) {
+                // 게임오버
+                resetGame();
+            }
+        }
+    }
+
+    function draw() {
+        // 배경 그리기
+        ctx.fillStyle = "#222";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 뱀 그리기
+        ctx.fillStyle = "lime";
+        for (let i = 0; i < snakeBody.length; i++) {
+            ctx.fillRect(snakeBody[i].x * gridSize, snakeBody[i].y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        // 사과 그리기
+        ctx.fillStyle = "red";
+        ctx.fillRect(appleX * gridSize, appleY * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    function resetGame() {
+        snakeX = 10; 
+        snakeY = 10;
+        vx = 0;
+        vy = 0;
+        snakeBody = [];
+        snakeLength = 5;
+        appleX = 15;
+        appleY = 15;
+    }
+
+    document.addEventListener("keydown", function(e) {
+        switch(e.key) {
+            case "ArrowLeft":
+                if (vx !== 1) { vx = -1; vy = 0; }
+                break;
+            case "ArrowUp":
+                if (vy !== 1) { vx = 0; vy = -1; }
+                break;
+            case "ArrowRight":
+                if (vx !== -1) { vx = 1; vy = 0; }
+                break;
+            case "ArrowDown":
+                if (vy !== -1) { vx = 0; vy = 1; }
+                break;
+        }
+    });
+
+    setInterval(gameLoop, 100);
+})();
+</script>
+</body>
+</html>
